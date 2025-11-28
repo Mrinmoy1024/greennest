@@ -1,6 +1,11 @@
-import { createContext, useEffect, useState } from "react";
-import { onAuthStateChanged, updateProfile } from "firebase/auth";
+import React, { createContext, useState, useEffect } from "react";
 import { auth } from "../firebase/firebase.config";
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  updateProfile,
+} from "firebase/auth";
 
 export const AuthContext = createContext();
 
@@ -13,34 +18,35 @@ const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
-  const updateProfileFunction = (displayName, photoURL) => {
-    if (!auth.currentUser) {
-      return Promise.reject(new Error("No user is logged in"));
-    }
-
-    return updateProfile(auth.currentUser, { displayName, photoURL }).then(
-      () => {
-        setUser({
-          ...auth.currentUser,
-          displayName,
-          photoURL,
-        });
-      }
-    );
+  const googleLogInFunction = () => {
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
   };
 
-  const value = {
-    user,
-    loading,
-    setUser,
-    updateProfileFunction,
+  const updateProfileFunction = (profileData) => {
+    if (!auth.currentUser) return Promise.reject("No user logged in");
+    return updateProfile(auth.currentUser, profileData).then(() => {
+      setUser({ ...auth.currentUser });
+    });
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        loading,
+        setLoading,
+        googleLogInFunction,
+        updateProfileFunction,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthProvider;

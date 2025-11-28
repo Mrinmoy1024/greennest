@@ -2,12 +2,15 @@ import React, { useState, useContext } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { AuthContext } from "../components/AuthProvider";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { toast } from "react-toastify";
 
 const SignUp = () => {
-  const { googleLogInFunction, setLoading, setUser } = useContext(AuthContext);
+  const { googleLogInFunction, setLoading, setUser, updateProfileFunction } =
+    useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,7 +38,7 @@ const SignUp = () => {
     return null;
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
 
     const error = validatePassword(formData.password);
@@ -44,23 +47,38 @@ const SignUp = () => {
       return;
     }
 
-    toast.success("Sign Up successful!");
+    try {
+      if (updateProfileFunction) {
+        await updateProfileFunction({
+          displayName: formData.name,
+          photoURL: formData.photo,
+        });
+      }
+      toast.success("Sign Up successful!");
+    } catch (err) {
+      toast.error(err.message || "Profile update failed");
+    }
   };
 
-  const handleGoogleSignIn = (e) => {
+  const handleGoogleSignIn = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    googleLogInFunction()
-      .then((res) => {
-        setLoading(false);
-        setUser(res.user);
-        toast.success("Login Successful");
-        navigate("/");
-      })
-      .catch((e) => {
-        setLoading(false);
-        toast.error(e.message);
-      });
+
+    if (typeof setLoading === "function") setLoading(true);
+
+    try {
+      if (!googleLogInFunction)
+        throw new Error("Google login function not available");
+      const res = await googleLogInFunction();
+
+      if (res?.user && typeof setUser === "function") setUser(res.user);
+
+      toast.success("Login Successful");
+      navigate(from, { replace: true });
+    } catch (error) {
+      toast.error(error.message || "Login failed");
+    } finally {
+      if (typeof setLoading === "function") setLoading(false);
+    }
   };
 
   return (

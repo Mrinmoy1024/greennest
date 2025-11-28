@@ -12,11 +12,11 @@ import PlantDetails from "../components/PlantDetails";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout></MainLayout>,
+    element: <MainLayout />,
     children: [
       {
         index: true,
-        element: <Home></Home>,
+        element: <Home />,
       },
       {
         path: "/profile",
@@ -28,34 +28,33 @@ export const router = createBrowserRouter([
       },
       {
         path: "/plants",
-        element: <Plants></Plants>,
+        element: <Plants />,
       },
-
       {
         path: "/plants/:id",
         element: (
           <PrivateRoute>
-            <PlantDetails></PlantDetails>
+            <PlantDetails />
           </PrivateRoute>
         ),
       },
       {
         path: "/login",
-        element: <Login></Login>,
+        element: <Login />,
       },
       {
         path: "/signup",
-        element: <SignUp></SignUp>,
+        element: <SignUp />,
       },
       {
         path: "/cart",
-        element: <Cart></Cart>,
+        element: <Cart />,
       },
       {
         path: "/plant-details/:id",
         element: (
           <PrivateRoute>
-            <PlantDetails></PlantDetails>
+            <PlantDetails />
           </PrivateRoute>
         ),
       },
